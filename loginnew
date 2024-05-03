@@ -1,0 +1,37 @@
+Got it. Assuming you have a database table named `users` where `user_id` and `role_id` are stored, you would first need to fetch the `role_id` based on the `user_id`. Then, you can use that `role_id` to determine the redirection. Here's how you can do it:
+
+```php
+<?php
+
+// Assuming you have already connected to your database
+
+// Assuming $user_id is already defined somewhere in your code
+// Fetch role_id based on user_id
+$query = "SELECT role_id FROM users WHERE user_id = :user_id";
+$stmt = $pdo->prepare($query);
+$stmt->execute(['user_id' => $user_id]);
+$row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+// Check if the user exists and if role_id is retrieved
+if ($row && isset($row['role_id'])) {
+    $role_id = $row['role_id'];
+
+    // Redirect based on role_id
+    if ($role_id == 3) {
+        header("Location: dashboard_leads.php");
+        exit; // Make sure to exit after redirection to prevent further execution
+    }
+
+    if ($role_id == 4) {
+        header("Location: dashboard_mentors.php");
+        exit;
+    }
+}
+
+// Default redirection if role_id is not found or not 3 or 4
+header("Location: dashboard.php");
+exit;
+?>
+```
+
+This code first fetches the `role_id` from the `users` table based on the provided `user_id`. Then, it redirects the user based on the retrieved `role_id`, or defaults to `dashboard.php` if the `role_id` is not found or not 3 or 4. Make sure to replace `$pdo` with your actual PDO database connection variable.
