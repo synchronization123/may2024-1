@@ -1,0 +1,36 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Textbox</title>
+</head>
+<body>
+    <input type="text" id="titleInput" placeholder="Enter title">
+    <button onclick="saveTitle()">Save</button>
+
+    <p id="message"></p>
+
+    <script>
+        function saveTitle() {
+            var title = document.getElementById('titleInput').value;
+            if (title.trim() !== '') {
+                var xhr = new XMLHttpRequest();
+                xhr.open('PATCH', 'http://10:07/patch.html'); // Assuming your server IP is 10.20 and port is 7
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        document.getElementById('message').textContent = 'Successfully inserted title value';
+                    } else {
+                        document.getElementById('message').textContent = 'Failed to insert title value';
+                    }
+                };
+                xhr.send(JSON.stringify({ title: title }));
+            } else {
+                document.getElementById('message').textContent = 'Please enter a title';
+            }
+        }
+    </script>
+</body>
+</html>
