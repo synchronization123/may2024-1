@@ -1,0 +1,37 @@
+Certainly! If your domain is `https://dojo.squid.com` and you want to serve both your Django app and PHP files under the same domain, here's how you can configure Apache:
+
+```apache
+<VirtualHost *:80>
+    ServerName dojo.squid.com
+
+    DocumentRoot /var/www/html
+
+    # Proxy requests to Django app
+    ProxyPass / http://localhost:8000/
+    ProxyPassReverse / http://localhost:8000/
+
+    # Configure PHP
+    <Directory /var/www/html/php_files>
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    # Route PHP requests to mod_php
+    <FilesMatch \.php$>
+        SetHandler application/x-httpd-php
+    </FilesMatch>
+</VirtualHost>
+```
+
+Make sure to replace `/var/www/html/php_files` with the actual path to your PHP files directory.
+
+This configuration assumes that your Django app is running locally on port 8000. Adjust the `ProxyPass` and `ProxyPassReverse` directives if your Django app is running on a different port or a different server altogether.
+
+After making these changes, restart Apache for the configuration to take effect:
+
+```
+sudo systemctl restart apache2
+```
+
+This configuration will proxy requests to your Django app running at `https://dojo.squid.com` while serving PHP files from the specified directory under the same domain.
