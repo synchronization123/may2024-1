@@ -1,0 +1,54 @@
+Sure, here's the modified version:
+
+**login.html:**
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+</head>
+<body>
+    <?php
+    // Check if there's an error message
+    if (isset($_GET["error"]) && $_GET["error"] == "invalid_credentials") {
+        echo "<p style='color: red;'>Invalid username or password!</p>";
+    }
+    ?>
+    <form action="http://10.100.30.56/login.php" method="POST">
+        <label for="username">Username:</label><br>
+        <input type="text" id="username" name="username"><br>
+        <label for="password">Password:</label><br>
+        <input type="password" id="password" name="password"><br><br>
+        <input type="submit" value="Login">
+    </form>
+</body>
+</html>
+```
+
+**login.php:**
+```php
+<?php
+// Start the session
+session_start();
+
+// Check if the form is submitted
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Check if username and password are correct
+    if ($_POST["username"] == "admin" && $_POST["password"] == "admin") {
+        // Set session variables
+        $_SESSION["loggedin"] = true;
+        $_SESSION["username"] = $_POST["username"];
+        
+        // Redirect to home page
+        header("location: home.html");
+    } else {
+        // Redirect back to login page with error message
+        header("location: https://mymq.dojo.com/login.html?error=invalid_credentials");
+    }
+}
+?>
+```
+
+This code will display an error message on `login.html` if the login credentials are invalid, and upon successful authentication, it will redirect to `home.html`.
