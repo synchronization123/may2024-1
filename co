@@ -1,0 +1,20 @@
+Sure, here's how you can define a function to add CORS headers in Python using Flask:
+
+```python
+from flask import Flask
+
+app = Flask(__name__)
+
+def add_cors_headers(response):
+    response.headers['Access-Control-Allow-Origin'] = 'https://demo.defectdojo.org'
+    return response
+
+@app.after_request
+def apply_cors(response):
+    return add_cors_headers(response)
+
+if __name__ == '__main__':
+    app.run()
+```
+
+This code defines a function `add_cors_headers` that adds the CORS header to the response, and then an `apply_cors` function is registered as an `after_request` handler to apply the CORS headers to every response.
