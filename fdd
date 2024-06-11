@@ -1,0 +1,41 @@
+To import the issue and API key from an Excel (xlsx) file, you can use the `openpyxl` library in Python. Here's how you can modify the script to read the issue and API key from an Excel file:
+
+```python
+import requests
+import openpyxl
+
+# Load the Excel file
+workbook = openpyxl.load_workbook('file.xlsx')
+
+# Select the active worksheet
+worksheet = workbook.active
+
+# Read the values from specific cells
+issue = worksheet['A1'].value
+api_key = worksheet['B1'].value
+
+# Define the URL
+url = "https://sonar.anc.com/api/issues/set_tags"
+
+# Define the JSON data
+data = {
+    "issue": issue,
+    "tags": "abc"
+}
+
+# Define headers
+headers = {
+    "api-key": api_key
+}
+
+# Send POST request
+response = requests.post(url, json=data, headers=headers)
+
+# Check response
+if response.status_code == 200:
+    print("Request successful!")
+else:
+    print("Error:", response.text)
+```
+
+Replace `'file.xlsx'` with the path to your Excel file. Ensure that the issue ID is in cell A1 and the API key is in cell B1, or adjust the cell references accordingly.
