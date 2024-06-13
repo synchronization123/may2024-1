@@ -1,0 +1,93 @@
+To display the URLs and their corresponding numbers in a tabular format in PHP, you can modify the script to accumulate the results and then output them in a table structure. Here's how you can do it:
+
+```php
+<?php
+// Array of URLs
+$urls = array(
+    'https://depchrck.buiod.com/projects/jdjdkdkdjdjfjhf/findings',
+    'https://depchrck.buiod.com/projects/bdjdjsndjdj/findings',
+    // Add more URLs as needed
+    // 'https://anotherexample.com/path/to/resource',
+);
+
+// Common username and password
+$username = 'jsjsjsjjd';
+$password = 'jsjsmsmms';
+
+// Function to fetch number from a URL using cURL
+function fetchNumber($url, $username, $password) {
+    // Initialize cURL session
+    $ch = curl_init();
+
+    // Set cURL options
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+    curl_setopt($ch, CURLOPT_USERPWD, "$username:$password");
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // For testing only, consider enabling for production
+
+    // Execute cURL session
+    $response = curl_exec($ch);
+
+    // Check for cURL errors
+    if(curl_errno($ch)) {
+        echo 'Error:' . curl_error($ch);
+        exit;
+    }
+
+    // Close cURL session
+    curl_close($ch);
+
+    // Parse the response to find the number within the span tag
+    preg_match('/<span data-v-682b972e class="badge badge-tab-total">(\d+)<\/span>/', $response, $matches);
+
+    if (isset($matches[1])) {
+        $number = $matches[1];
+        return $number;
+    } else {
+        return null; // Return null if number not found
+    }
+}
+
+// Array to store results
+$results = array();
+
+// Loop through each URL and fetch/display the number
+foreach ($urls as $url) {
+    $number = fetchNumber($url, $username, $password);
+
+    // Store result in the results array
+    $results[] = array(
+        'url' => $url,
+        'number' => $number !== null ? $number : 'Number not found'
+    );
+}
+
+// Output results in tabular format
+echo '<table border="1">';
+echo '<tr><th>URL</th><th>Number</th></tr>';
+foreach ($results as $result) {
+    echo '<tr>';
+    echo '<td>' . $result['url'] . '</td>';
+    echo '<td>' . $result['number'] . '</td>';
+    echo '</tr>';
+}
+echo '</table>';
+?>
+```
+
+### Explanation:
+
+1. **URLs Array**: Contains all the URLs you want to fetch data from.
+
+2. **Common Username and Password**: Declares `$username` and `$password` variables with the same credentials for all URLs.
+
+3. **`fetchNumber` Function**: Encapsulates the cURL logic to fetch the number from a given URL using the provided username and password. It returns the fetched number or `'Number not found'` if not found.
+
+4. **Results Array**: Initializes an array `$results` to store the fetched results (`url` and `number`).
+
+5. **Loop Through URLs**: Uses a `foreach` loop to iterate over each URL in the `$urls` array. For each iteration, calls the `fetchNumber` function with the URL and common credentials, stores the result in `$results`.
+
+6. **Output in Tabular Format**: Outputs the stored results in an HTML table (`<table>`). Each URL and its corresponding number (or message if not found) are displayed in rows (`<tr>`) and columns (`<td>`).
+
+This script will generate a structured HTML table displaying each URL and the corresponding number fetched from the HTML response, or a message indicating that the number was not found. Adjust the HTML parsing logic (`preg_match`) as needed based on the actual structure of the HTML response from each URL.
