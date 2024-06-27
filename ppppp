@@ -1,0 +1,46 @@
+Certainly! Using `pandas` can simplify the process, especially for handling large CSV files efficiently. Here's how you can split a large CSV file into 6 equal parts using `pandas`:
+
+```python
+import pandas as pd
+import os
+
+# Function to split a CSV file into equal parts using pandas
+def split_csv_pandas(input_file, output_prefix, num_parts):
+    # Read the CSV file into a pandas dataframe
+    df = pd.read_csv(input_file)
+
+    # Calculate number of rows per part
+    total_rows = len(df)
+    rows_per_part = total_rows // num_parts
+    
+    # Split the dataframe into parts
+    for part_number in range(num_parts):
+        start_index = part_number * rows_per_part
+        end_index = (part_number + 1) * rows_per_part if part_number < num_parts - 1 else None
+        part_df = df.iloc[start_index:end_index]
+        
+        # Write each part to a new CSV file
+        part_filename = f"{output_prefix}_part{part_number + 1}.csv"
+        part_df.to_csv(part_filename, index=False)
+    
+    print(f"File split into {num_parts} parts successfully.")
+
+# Example usage:
+input_file = 'your_large_file.csv'  # Replace with your file path
+output_prefix = 'output_split'      # Prefix for output files
+num_parts = 6                       # Number of parts to split into
+
+split_csv_pandas(input_file, output_prefix, num_parts)
+```
+
+### Explanation:
+- **pd.read_csv**: Reads the entire CSV file into a pandas dataframe.
+- **len(df)**: Computes the total number of rows in the dataframe.
+- **iloc[start:end]**: Slices the dataframe to extract rows for each part based on calculated `start_index` and `end_index`.
+- **to_csv**: Writes each sliced dataframe (`part_df`) to a separate CSV file with the naming convention `output_prefix_part{part_number}.csv`.
+
+### Notes:
+- This approach assumes your CSV file can fit into memory. If memory is a concern with very large files, consider using `chunksize` parameter with `pd.read_csv` to process the file in smaller chunks.
+- Ensure you have enough disk space available, as this process involves creating multiple output files.
+
+Using `pandas` simplifies handling and manipulating large datasets like CSV files, providing efficient ways to read, process, and write data. Adjust the `input_file`, `output_prefix`, and `num_parts` variables as needed for your specific use case.
