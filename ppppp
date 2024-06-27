@@ -1,62 +1,54 @@
-The error you're encountering in your Python script (`splitcsv.py`) seems related to the function `split_csv_pandas`. Typically, errors in Python scripts provide a traceback that indicates the specific line where the issue occurred and often include the error message itself. Here’s how you can approach debugging and resolving such issues:
-
-### Steps to Resolve the Error:
-
-1. **Check the Traceback**:
-   - When Python encounters an error, it provides a traceback that shows the sequence of function calls leading to the error and the specific line number within each function.
-   - Look at the traceback message to identify the line number (`line 31`) and the specific error message associated with it.
-
-2. **Review `split_csv_pandas` Function**:
-   - Navigate to `splitcsv.py` and locate line 31, where the error occurs.
-   - Check the code around this line, paying attention to syntax errors, incorrect variable names, or any other potential issues that could cause the error.
-
-3. **Common Issues**:
-   - **Variable Names**: Ensure that all variables used in the function are correctly defined and used within the function scope.
-   - **Indentation**: Python relies on indentation to define blocks of code. Make sure the indentation is consistent and correct.
-   - **Function Calls**: Check if all functions being called within `split_csv_pandas` are defined correctly and are accessible.
-
-4. **Debugging Tools**:
-   - Use `print()` statements to output values of variables and intermediate results to understand the flow of execution.
-   - You can also use a debugger such as `pdb` (Python Debugger) to step through your code and inspect variables at runtime.
-
-### Example Approach:
-
-Assuming your `split_csv_pandas` function resembles the previously provided example, ensure that:
-
-- The input parameters (`input_file`, `output_prefix`, `num_parts`) are correctly passed and used within the function.
-- The dataframe (`df`) is correctly sliced using `iloc` to create parts based on the calculated indices (`start_index` and `end_index`).
-
-Here’s a simplified version of the function for reference:
+When dealing with a large CSV file (such as your 2GB file) in Python using pandas, you might encounter memory-related issues because pandas attempts to load the entire file into memory by default. To handle large files more efficiently and avoid memory errors, you can use the `chunksize` parameter in `pd.read_csv()` to read the file in chunks. Additionally, you can set `low_memory=True` to handle columns with mixed types more efficiently. Here’s how you can modify your script:
 
 ```python
 import pandas as pd
+import os
 
+# Function to split a large CSV file into equal parts using pandas with chunking
 def split_csv_pandas(input_file, output_prefix, num_parts):
-    df = pd.read_csv(input_file)
-    total_rows = len(df)
-    rows_per_part = total_rows // num_parts
+    # Define chunk size based on estimated number of rows to fit comfortably in memory
+    chunk_size = 10**6  # Adjust as needed based on your system's memory capacity
+
+    # Reading CSV file in chunks
+    chunks = pd.read_csv(input_file, chunksize=chunk_size, low_memory=True)
     
-    for part_number in range(num_parts):
-        start_index = part_number * rows_per_part
-        end_index = (part_number + 1) * rows_per_part if part_number < num_parts - 1 else None
-        part_df = df.iloc[start_index:end_index]
+    part_number = 1
+    for chunk in chunks:
+        # Calculate rows per part
+        rows_per_part = len(chunk) // num_parts
         
-        part_filename = f"{output_prefix}_part{part_number + 1}.csv"
-        part_df.to_csv(part_filename, index=False)
+        for i in range(num_parts):
+            start_index = i * rows_per_part
+            end_index = (i + 1) * rows_per_part if i < num_parts - 1 else None
+            part_df = chunk.iloc[start_index:end_index]
+            
+            # Write each part to a new CSV file
+            part_filename = f"{output_prefix}_part{part_number}.csv"
+            part_df.to_csv(part_filename, index=False)
+            part_number += 1
     
     print(f"File split into {num_parts} parts successfully.")
 
 # Example usage:
-input_file = 'your_large_file.csv'
-output_prefix = 'output_split'
-num_parts = 6
+input_file = 'your_large_file.csv'  # Replace with your file path
+output_prefix = 'output_split'      # Prefix for output files
+num_parts = 6                       # Number of parts to split into
 
 split_csv_pandas(input_file, output_prefix, num_parts)
 ```
 
-### Notes:
-- Ensure your `input_file` exists and is correctly formatted.
-- Make sure `pandas` library is installed (`pip install pandas`) and accessible in your Python environment.
-- Debug step by step using `print()` statements or a debugger to isolate the issue.
+### Explanation:
 
-By carefully reviewing the traceback message and inspecting your code at the reported line (`line 31` in `splitcsv.py`), you should be able to identify and fix the issue causing the error in your Python script.
+- **chunksize**: This parameter in `pd.read_csv()` specifies the number of rows to read into memory at once. Adjust `chunk_size` based on your system's memory capacity to balance between memory usage and performance.
+  
+- **low_memory=True**: This option helps pandas handle columns with mixed types more efficiently. It is useful when dealing with large files where pandas needs to infer the data types for each column.
+
+- **Processing Chunks**: The script reads the CSV file in chunks (`chunksize=chunk_size`), then processes each chunk to split it into `num_parts` parts. This approach minimizes memory usage by only holding a chunk of data in memory at a time.
+
+### Notes:
+
+- **Memory Considerations**: Depending on your system's memory capacity, adjust `chunk_size` accordingly. Start with a smaller size and increase it gradually if your system can handle larger chunks without memory errors.
+
+- **Performance**: Reading and writing large CSV files can be time-consuming. Adjust `chunk_size` and `num_parts` based on your specific requirements and system resources to achieve optimal performance.
+
+By using chunking and setting `low_memory=True`, you can effectively handle large CSV files in pandas without encountering memory-related issues, thus enabling efficient processing and splitting of your 2GB CSV file into multiple parts.
