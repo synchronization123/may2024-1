@@ -1,0 +1,62 @@
+The error you're encountering in your Python script (`splitcsv.py`) seems related to the function `split_csv_pandas`. Typically, errors in Python scripts provide a traceback that indicates the specific line where the issue occurred and often include the error message itself. Here’s how you can approach debugging and resolving such issues:
+
+### Steps to Resolve the Error:
+
+1. **Check the Traceback**:
+   - When Python encounters an error, it provides a traceback that shows the sequence of function calls leading to the error and the specific line number within each function.
+   - Look at the traceback message to identify the line number (`line 31`) and the specific error message associated with it.
+
+2. **Review `split_csv_pandas` Function**:
+   - Navigate to `splitcsv.py` and locate line 31, where the error occurs.
+   - Check the code around this line, paying attention to syntax errors, incorrect variable names, or any other potential issues that could cause the error.
+
+3. **Common Issues**:
+   - **Variable Names**: Ensure that all variables used in the function are correctly defined and used within the function scope.
+   - **Indentation**: Python relies on indentation to define blocks of code. Make sure the indentation is consistent and correct.
+   - **Function Calls**: Check if all functions being called within `split_csv_pandas` are defined correctly and are accessible.
+
+4. **Debugging Tools**:
+   - Use `print()` statements to output values of variables and intermediate results to understand the flow of execution.
+   - You can also use a debugger such as `pdb` (Python Debugger) to step through your code and inspect variables at runtime.
+
+### Example Approach:
+
+Assuming your `split_csv_pandas` function resembles the previously provided example, ensure that:
+
+- The input parameters (`input_file`, `output_prefix`, `num_parts`) are correctly passed and used within the function.
+- The dataframe (`df`) is correctly sliced using `iloc` to create parts based on the calculated indices (`start_index` and `end_index`).
+
+Here’s a simplified version of the function for reference:
+
+```python
+import pandas as pd
+
+def split_csv_pandas(input_file, output_prefix, num_parts):
+    df = pd.read_csv(input_file)
+    total_rows = len(df)
+    rows_per_part = total_rows // num_parts
+    
+    for part_number in range(num_parts):
+        start_index = part_number * rows_per_part
+        end_index = (part_number + 1) * rows_per_part if part_number < num_parts - 1 else None
+        part_df = df.iloc[start_index:end_index]
+        
+        part_filename = f"{output_prefix}_part{part_number + 1}.csv"
+        part_df.to_csv(part_filename, index=False)
+    
+    print(f"File split into {num_parts} parts successfully.")
+
+# Example usage:
+input_file = 'your_large_file.csv'
+output_prefix = 'output_split'
+num_parts = 6
+
+split_csv_pandas(input_file, output_prefix, num_parts)
+```
+
+### Notes:
+- Ensure your `input_file` exists and is correctly formatted.
+- Make sure `pandas` library is installed (`pip install pandas`) and accessible in your Python environment.
+- Debug step by step using `print()` statements or a debugger to isolate the issue.
+
+By carefully reviewing the traceback message and inspecting your code at the reported line (`line 31` in `splitcsv.py`), you should be able to identify and fix the issue causing the error in your Python script.
