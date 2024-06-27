@@ -1,66 +1,56 @@
-The error messages you're encountering seem to indicate a couple of issues that need attention. Let's address them step by step:
+I apologize for the confusion. The issue arises because batch scripts have limitations when dealing with quotation marks (`"`). To fetch the header or the first row from a CSV file accurately, especially if it contains special characters or spaces, we need to handle it more carefully. Let's correct the script to ensure it handles quotation marks properly:
 
-### 1. Typo in Function Call:
-The error message `File spliycsv.py line 23 in module split_csv_pandas(input_file, output_prefix num_parts)` suggests there's a typo in the function call. The parameter `num_parts` is missing a comma between `output_prefix` and `num_parts`. Ensure that your function call looks like this:
+### Corrected Batch Script to Fetch Header or First Row:
 
-```python
-split_csv_pandas(input_file, output_prefix, num_parts)
-```
+```batch
+@echo off
 
-### 2. Error in `pd.read_csv()`:
-The second part of the error message `File splitcsv.py line 4 in split_csv_pandas df=pd.rrad_csv(input_file)` indicates an issue with `pd.read_csv()` function call. There's a typo in `pd.rrad_csv`, it should be `pd.read_csv`. Additionally, you should handle the potential memory issues by adjusting `chunksize` and setting `low_memory=True`.
+REM Define input CSV file
+set inputFile="C:\path\to\your\input.csv"
 
-### Corrected Code with Fixes:
+REM Define output folder for header file
+set outputFolder="C:\path\to\output\folder"
 
-Here’s how your script should look after addressing these issues:
+REM Ensure the output folder exists; create if it doesn't
+if not exist "%outputFolder%" mkdir "%outputFolder%"
 
-```python
-import pandas as pd
-import os
+REM Set a variable to hold the header file path
+set headerFile="%outputFolder%\header.csv"
 
-# Function to split a large CSV file into equal parts using pandas with chunking
-def split_csv_pandas(input_file, output_prefix, num_parts):
-    # Define chunk size based on estimated number of rows to fit comfortably in memory
-    chunk_size = 10**6  # Adjust as needed based on your system's memory capacity
+REM Fetch header (first row) from the CSV file
+for /f "usebackq skip=0 tokens=* delims=" %%a in (%inputFile%) do (
+    echo %%a > %headerFile%
+    goto :done
+)
 
-    # Reading CSV file in chunks
-    chunks = pd.read_csv(input_file, chunksize=chunk_size, low_memory=True)
-    
-    part_number = 1
-    for chunk in chunks:
-        # Calculate rows per part
-        rows_per_part = len(chunk) // num_parts
-        
-        for i in range(num_parts):
-            start_index = i * rows_per_part
-            end_index = (i + 1) * rows_per_part if i < num_parts - 1 else None
-            part_df = chunk.iloc[start_index:end_index]
-            
-            # Write each part to a new CSV file
-            part_filename = f"{output_prefix}_part{part_number}.csv"
-            part_df.to_csv(part_filename, index=False)
-            part_number += 1
-    
-    print(f"File split into {num_parts} parts successfully.")
-
-# Example usage:
-input_file = 'your_large_file.csv'  # Replace with your file path
-output_prefix = 'output_split'      # Prefix for output files
-num_parts = 6                       # Number of parts to split into
-
-split_csv_pandas(input_file, output_prefix, num_parts)
+:done
+echo Header fetched successfully from %inputFile% and saved to %headerFile%
 ```
 
 ### Explanation:
 
-- **Chunk Size and `low_memory=True`**: These settings help handle large CSV files more efficiently by reading them in manageable chunks and optimizing memory usage.
-  
-- **Function Call**: Ensure that the function call `split_csv_pandas(input_file, output_prefix, num_parts)` correctly passes all three parameters (`input_file`, `output_prefix`, `num_parts`) separated by commas.
+- **`usebackq` and `delims=`**: These options are used to properly handle spaces and special characters in file paths. `usebackq` allows us to use double quotes to quote filenames.
+- **`tokens=*`**: This specifies that the entire line (`%%a`) should be treated as a single token, ensuring that any content within the line, including spaces and special characters, is captured correctly.
+- **`goto :done`**: This exits the loop after fetching the first line/header to avoid unnecessary processing.
 
-### Notes:
+### Instructions:
 
-- **Adjust Chunk Size**: Depending on your system's memory capacity and the size of your CSV file, adjust `chunk_size` (`10**6` in the example) accordingly for optimal performance.
-  
-- **File Paths**: Replace `'your_large_file.csv'` and `'output_split'` with your actual file path and desired output prefix.
+1. **Edit the Batch Script:**
+   - Replace `"C:\path\to\your\input.csv"` with the full path to your CSV file from which you want to fetch the header or the first row.
+   - Replace `"C:\path\to\output\folder"` with the path to the folder where you want to save the header file (`header.csv`).
+   - Save this script with a `.bat` extension, for example, `fetch_header.bat`.
 
-By following these corrected steps and ensuring the function call and `pd.read_csv()` parameters are correctly set, you should be able to successfully split your large CSV file into multiple parts without encountering the previous errors.
+2. **Run the Batch Script:**
+   - Open Command Prompt.
+   - Navigate to the directory where your `fetch_header.bat` file is saved using the `cd` command.
+   - Execute the batch script by typing its name (`fetch_header.bat`) and pressing Enter:
+     ```
+     fetch_header.bat
+     ```
+
+3. **Outcome:**
+   - The script will check if the specified output folder (`outputFolder`) exists; if not, it will create it.
+   - It will create or overwrite `header.csv` in the specified output folder (`outputFolder`).
+   - The script will print `Header fetched successfully from %inputFile% and saved to %headerFile%` once the operation is completed.
+
+This corrected script should handle CSV files with special characters and spaces in the filename or path correctly, ensuring that the header or the first row is fetched and saved as `header.csv` in the specified output folder.
