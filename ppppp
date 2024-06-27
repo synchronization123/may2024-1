@@ -1,6 +1,6 @@
-I understand the need for efficiency, especially with large files. To fetch only the first row (header) from a large CSV file quickly using a batch script, we can use a simpler and more direct approach. Here’s how you can modify the script:
+I understand your concern. Let's ensure that the batch script fetches only the first row (header) from the CSV file using a method that avoids `findstr` and is efficient for large files. Here’s an optimized approach using a loop to read just the first line:
 
-### Simplified Batch Script to Fetch Header Only:
+### Updated Batch Script to Fetch Header Only (Optimized):
 
 ```batch
 @echo off
@@ -17,11 +17,18 @@ if not exist "%outputFolder%" mkdir "%outputFolder%"
 REM Set a variable to hold the header file path
 set "headerFile=%outputFolder%\header.csv"
 
-REM Use 'set /p' to read only the first line (header) from the CSV file
-<"%inputFile%" (
-    set /p "header="
+REM Initialize header variable
+set "header="
+
+REM Read only the first line (header) from the CSV file
+for /f "usebackq delims=" %%a in ("%inputFile%") do (
+    if not defined header (
+        set "header=%%a"
+        goto :done
+    )
 )
 
+:done
 REM Output the fetched header to the header file
 echo %header% > "%headerFile%"
 
@@ -30,7 +37,8 @@ echo Header fetched successfully from %inputFile% and saved to %headerFile%
 
 ### Explanation:
 
-- **`<"%inputFile%" ( set /p "header=" )`**: This command reads only the first line (header) from the CSV file specified by `%inputFile%` using `<` to redirect input. `set /p` reads the first line into the `header` variable.
+- **`for /f "usebackq delims=" %%a in ("%inputFile%") do ...`**: This loop iterates over each line of the `%inputFile%`. The `delims=` ensures that each entire line (`%%a`) is captured without splitting into tokens.
+- **`if not defined header ...`**: This condition ensures that we only capture the first line (header). Once `header` is set, the loop exits using `goto :done`.
 - **`echo %header% > "%headerFile%"`**: This line outputs the content of the `header` variable (which contains the first line of the CSV file) to `%headerFile%`.
 
 ### Instructions:
@@ -53,4 +61,4 @@ echo Header fetched successfully from %inputFile% and saved to %headerFile%
    - It will create or overwrite `header.csv` in the specified output folder (`outputFolder`) with just the header row from your CSV file.
    - The script will print `Header fetched successfully from %inputFile% and saved to %headerFile%` once the operation is completed.
 
-This simplified approach directly reads only the first line (header) from your large CSV file, ensuring quick execution even for large files without unnecessary processing or potential issues with command line length limits. Adjust paths and file names as needed based on your specific environment and file locations.
+This optimized approach directly reads only the first line (header) from your large CSV file, ensuring quick execution without using `findstr` or other commands that might impact performance or encounter length limitations. Adjust paths and file names as needed based on your specific environment and file locations.
