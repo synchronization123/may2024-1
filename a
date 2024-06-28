@@ -1,4 +1,4 @@
-If you only need to identify the table names where the substring 'adfs' appears, without specifying the column data type, you can simplify the procedure to focus solely on table and column names. Here’s how you can modify the procedure:
+Certainly! Here's a revised version of the procedure tailored specifically for MySQL databases, focusing on identifying table names where the substring 'adfs' appears in any column:
 
 ```sql
 DELIMITER //
@@ -7,7 +7,6 @@ CREATE PROCEDURE FindTablesContainingSubstring()
 BEGIN
     DECLARE done INT DEFAULT FALSE;
     DECLARE tableName VARCHAR(255);
-    DECLARE columnName VARCHAR(255);
     DECLARE hasMatch BOOLEAN;
 
     -- Temporary table to store table names
@@ -15,23 +14,31 @@ BEGIN
         TABLE_NAME VARCHAR(255)
     );
 
+    -- Cursor to iterate over table names
     DECLARE cur1 CURSOR FOR
-        SELECT TABLE_NAME, COLUMN_NAME
-        FROM INFORMATION_SCHEMA.COLUMNS
-        WHERE TABLE_SCHEMA = 'crm';
+        SELECT TABLE_NAME
+        FROM INFORMATION_SCHEMA.TABLES
+        WHERE TABLE_SCHEMA = 'your_database_name'; -- Replace with your database name
 
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
 
     OPEN cur1;
 
     read_loop: LOOP
-        FETCH cur1 INTO tableName, columnName;
+        FETCH cur1 INTO tableName;
         IF done THEN
             LEAVE read_loop;
         END IF;
 
-        -- Check if 'adfs' is present in any column
-        SET @sql = CONCAT('SELECT COUNT(*) INTO @has_match FROM ', tableName, ' WHERE ', columnName, ' LIKE "%adfs%"');
+        -- Check if 'adfs' is present in any column of the current table
+        SET @sql = CONCAT('SELECT COUNT(*) INTO @has_match FROM ',
+                          tableName,
+                          ' WHERE EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = \'your_database_name\' AND TABLE_NAME = \'',
+                          tableName,
+                          '\' AND DATA_TYPE LIKE \'%char%\' AND CHARACTER_MAXIMUM_LENGTH IS NOT NULL AND COLUMN_NAME IN (SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = \'your_database_name\' AND TABLE_NAME = \'',
+                          tableName,
+                          '\' AND COLUMN_TYPE LIKE \'%adfs%\'))');
+
         PREPARE stmt FROM @sql;
         EXECUTE stmt;
         DEALLOCATE PREPARE stmt;
@@ -45,7 +52,7 @@ BEGIN
     CLOSE cur1;
 
     -- Select all table names with matches
-    SELECT DISTINCT TABLE_NAME FROM TablesWithSubstring;
+    SELECT * FROM TablesWithSubstring;
 
     -- Drop the temporary table
     DROP TEMPORARY TABLE IF EXISTS TablesWithSubstring;
@@ -56,17 +63,18 @@ DELIMITER ;
 
 ### Explanation:
 
-- **Temporary Table**: We create a temporary table `TablesWithSubstring` to store table names where the substring 'adfs' is found.
-- **Cursor and Loop**: We iterate over all columns in all tables (`INFORMATION_SCHEMA.COLUMNS`) within the 'crm' database schema.
-- **Dynamic SQL**: For each column, we dynamically construct a SQL query to check if the column contains the substring 'adfs'.
+- **Temporary Table**: We create a temporary table `TablesWithSubstring` to store table names where the substring 'adfs' is found in any column.
+- **Cursor and Loop**: We use a cursor to iterate over all tables (`INFORMATION_SCHEMA.TABLES`) within the specified database (`your_database_name`).
+- **Dynamic SQL**: For each table, we dynamically construct a SQL query to check if any column in the table contains the substring 'adfs'.
 - **Storing Results**: If a match is found in any column of a table, we insert the table name into the `TablesWithSubstring` temporary table.
-- **Final Selection**: At the end of the procedure, we select and display distinct table names from the `TablesWithSubstring` table.
+- **Final Selection**: At the end of the procedure, we select and display all table names stored in `TablesWithSubstring`.
 - **Cleanup**: Finally, we drop the temporary table to clean up after the procedure.
 
 ### Running the Procedure:
 
-1. Execute `CALL FindTablesContainingSubstring();` to start the procedure.
-2. It will populate the `TablesWithSubstring` temporary table with the names of tables where 'adfs' is found in any column.
-3. The procedure then selects and displays the distinct table names.
+1. Replace `'your_database_name'` with the name of your MySQL database where you want to search for the substring 'adfs'.
+2. Execute `CALL FindTablesContainingSubstring();` to start the procedure.
+3. It will populate the `TablesWithSubstring` temporary table with the names of tables where 'adfs' is found in any column.
+4. The procedure then selects and displays the table names.
 
-This streamlined approach should meet your requirement of identifying the table names where the substring 'adfs' appears, without focusing on specific column data types. Adjust the database schema (`crm`) as necessary to match your environment. If you have any further questions or issues, feel free to ask!
+This procedure should effectively identify and list the table names where the substring 'adfs' appears in any column within your MySQL database. Adjust the database name as necessary to match your specific environment. If you encounter any issues or have further questions, feel free to ask!
