@@ -1,66 +1,27 @@
-I see, if "charlie" is a value in a column and you want to find which tables and columns contain this value across MySQL, MSSQL, and PostgreSQL databases, you can use the following queries:
+To find the table name where the substring 'adfs' is present in MySQL across all tables in your 'crm' database, you can use the following query:
 
-### MySQL Query:
 ```sql
-SELECT TABLE_NAME, COLUMN_NAME
-FROM information_schema.columns
-WHERE TABLE_SCHEMA = 'your_database_name'
-AND TABLE_NAME IN (
-    SELECT TABLE_NAME
-    FROM information_schema.columns
-    WHERE TABLE_SCHEMA = 'your_database_name'
-    AND COLUMN_NAME LIKE '%charlie%'
-)
-AND EXISTS (
-    SELECT 1
-    FROM your_database_name.TABLE_NAME
-    WHERE COLUMN_NAME LIKE '%charlie%'
-);
-```
-Replace `'your_database_name'` with your actual MySQL database name.
-
-### MSSQL Query:
-```sql
-SELECT TABLE_NAME, COLUMN_NAME
+SELECT DISTINCT TABLE_NAME
 FROM INFORMATION_SCHEMA.COLUMNS
-WHERE TABLE_CATALOG = 'your_database_name'
-AND TABLE_NAME IN (
-    SELECT TABLE_NAME
-    FROM INFORMATION_SCHEMA.COLUMNS
-    WHERE TABLE_CATALOG = 'your_database_name'
-    AND COLUMN_NAME LIKE '%charlie%'
-)
-AND EXISTS (
-    SELECT 1
-    FROM your_database_name.dbo.TABLE_NAME
-    WHERE COLUMN_NAME LIKE '%charlie%'
-);
+WHERE TABLE_SCHEMA = 'crm'
+  AND TABLE_NAME IN (
+      SELECT TABLE_NAME
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE TABLE_SCHEMA = 'crm'
+        AND DATA_TYPE LIKE '%char%'
+        AND CHARACTER_MAXIMUM_LENGTH IS NOT NULL
+        AND COLUMN_NAME IN (
+            SELECT COLUMN_NAME
+            FROM INFORMATION_SCHEMA.COLUMNS
+            WHERE TABLE_SCHEMA = 'crm'
+              AND COLUMN_TYPE LIKE '%adfs%'
+        )
+  );
 ```
-Replace `'your_database_name'` with your actual MSSQL database name.
 
-### PostgreSQL Query:
-```sql
-SELECT table_name, column_name
-FROM information_schema.columns
-WHERE table_catalog = 'your_database_name'
-AND table_name IN (
-    SELECT table_name
-    FROM information_schema.columns
-    WHERE table_catalog = 'your_database_name'
-    AND column_name LIKE '%charlie%'
-)
-AND EXISTS (
-    SELECT 1
-    FROM your_database_name.table_name
-    WHERE column_name LIKE '%charlie%'
-);
-```
-Replace `'your_database_name'` with your actual PostgreSQL database name.
+This query works as follows:
 
-### Notes:
-- These queries search for tables and columns where the value 'charlie' exists.
-- Adjust the database name (`TABLE_SCHEMA` for MySQL, `TABLE_CATALOG` for MSSQL, `table_catalog` for PostgreSQL) and schema (`dbo` for MSSQL) according to your database configuration.
-- `%charlie%` in the `LIKE` clauses will find any column name containing the substring "charlie".
-- The `EXISTS` clause ensures that the query checks for the existence of the value 'charlie' within the specified columns.
+1. It searches for tables in the 'crm' database where there are columns containing the substring 'adfs'.
+2. It uses the `INFORMATION_SCHEMA.COLUMNS` view to look for tables and columns matching the criteria.
 
-Execute these queries in your respective database management tool to find the tables and columns where the value 'charlie' exists.
+Make sure to replace `'crm'` with your actual database name if it differs. This query should help identify the table name(s) where the 'adfs' substring is present in any column.
