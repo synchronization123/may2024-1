@@ -1,27 +1,57 @@
-To find the table name where the substring 'adfs' is present in MySQL across all tables in your 'crm' database, you can use the following query:
+If you're having difficulty finding the table name where the substring 'adfs' is present, we can approach this step-by-step to ensure we cover all possibilities. Here’s an alternative method:
+
+1. **Search through all tables**: We can write a query to search through all tables and their columns for any occurrence of the substring 'adfs'. This approach involves dynamically constructing SQL queries for each table and column in your database.
+
+Here's a MySQL procedure that can help you achieve this:
 
 ```sql
-SELECT DISTINCT TABLE_NAME
-FROM INFORMATION_SCHEMA.COLUMNS
-WHERE TABLE_SCHEMA = 'crm'
-  AND TABLE_NAME IN (
-      SELECT TABLE_NAME
-      FROM INFORMATION_SCHEMA.COLUMNS
-      WHERE TABLE_SCHEMA = 'crm'
-        AND DATA_TYPE LIKE '%char%'
-        AND CHARACTER_MAXIMUM_LENGTH IS NOT NULL
-        AND COLUMN_NAME IN (
-            SELECT COLUMN_NAME
-            FROM INFORMATION_SCHEMA.COLUMNS
-            WHERE TABLE_SCHEMA = 'crm'
-              AND COLUMN_TYPE LIKE '%adfs%'
-        )
-  );
+DELIMITER //
+
+CREATE PROCEDURE FindSubstringInTables()
+BEGIN
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE tableName VARCHAR(255);
+    DECLARE columnName VARCHAR(255);
+    DECLARE cur1 CURSOR FOR
+        SELECT TABLE_NAME, COLUMN_NAME
+        FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = 'crm'
+          AND DATA_TYPE LIKE '%char%'
+          AND CHARACTER_MAXIMUM_LENGTH IS NOT NULL;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    OPEN cur1;
+
+    read_loop: LOOP
+        FETCH cur1 INTO tableName, columnName;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+
+        SET @sql = CONCAT('SELECT COUNT(*) FROM ', tableName, ' WHERE ', columnName, ' LIKE "%adfs%"');
+        PREPARE stmt FROM @sql;
+        EXECUTE stmt;
+        DEALLOCATE PREPARE stmt;
+    END LOOP;
+
+    CLOSE cur1;
+END//
+
+DELIMITER ;
 ```
 
-This query works as follows:
+### Explanation:
 
-1. It searches for tables in the 'crm' database where there are columns containing the substring 'adfs'.
-2. It uses the `INFORMATION_SCHEMA.COLUMNS` view to look for tables and columns matching the criteria.
+- This procedure loops through each table and column in your database (`crm`) where the data type suggests it could potentially contain the substring 'adfs'.
+- For each table and column combination, it dynamically constructs a `SELECT` statement that checks if the column contains the substring 'adfs'.
+- It counts the occurrences of 'adfs' in each column and table combination.
+- To execute this procedure, you can run `CALL FindSubstringInTables();`.
 
-Make sure to replace `'crm'` with your actual database name if it differs. This query should help identify the table name(s) where the 'adfs' substring is present in any column.
+### Notes:
+
+- Make sure to replace `'crm'` with your actual database name if it differs.
+- This procedure assumes that the substring 'adfs' is stored in a character-type column (VARCHAR, CHAR, TEXT, etc.). Adjust the `DATA_TYPE LIKE '%char%'` condition if necessary.
+- Running this procedure may take some time depending on the size and number of tables in your database.
+
+If you encounter any errors or need further assistance, please let me know!
