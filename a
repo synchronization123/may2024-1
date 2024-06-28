@@ -1,28 +1,31 @@
-It seems there might have been an issue with the syntax or compatibility with your MySQL server version. Let's simplify the approach to directly search for the substring 'adfs' within any column of any table in your MySQL database without using dynamic SQL and cursor loops, which might be causing compatibility problems.
-
-Here's a straightforward query you can execute to achieve this:
+If you want to find a table name based on the presence of a specific value ('adfs' in your case) within any of its columns, you can modify the query to search for that value directly. Here's how you can do it:
 
 ```sql
 SELECT DISTINCT TABLE_NAME
 FROM INFORMATION_SCHEMA.COLUMNS
 WHERE TABLE_SCHEMA = 'your_database_name' -- Replace with your actual database name
-  AND COLUMN_TYPE LIKE '%adfs%';
+  AND TABLE_NAME IN (
+      SELECT TABLE_NAME
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE TABLE_SCHEMA = 'your_database_name' -- Replace with your actual database name
+        AND COLUMN_TYPE LIKE '%char%' -- Adjust as needed to match your column types
+        AND COLUMN_NAME IN (
+            SELECT COLUMN_NAME
+            FROM INFORMATION_SCHEMA.COLUMNS
+            WHERE TABLE_SCHEMA = 'your_database_name' -- Replace with your actual database name
+              AND TABLE_NAME = 'your_table_name' -- Optionally restrict to a specific table
+              AND COLUMN_TYPE LIKE '%char%' -- Adjust as needed to match your column types
+              AND COLUMN_NAME IN (
+                  SELECT COLUMN_NAME
+                  FROM your_table_name -- Replace with your actual table name
+                  WHERE column_name LIKE '%adfs%'
+              )
+        )
+  );
 ```
 
-### Explanation:
+This query works as follows:
 
-- **INFORMATION_SCHEMA.COLUMNS**: This system view contains information about columns in tables within a database.
-- **WHERE clause**: Filters the results to only include tables from your specified database (`your_database_name`) where at least one column's data type contains the substring 'adfs'.
-- **SELECT DISTINCT**: Ensures each table name is only listed once, even if multiple columns within that table match the condition.
-
-### Steps to execute:
-
-1. Replace `'your_database_name'` with your actual MySQL database name.
-2. Execute the above SQL query in your MySQL client or interface.
-
-### Notes:
-
-- Make sure your MySQL user has appropriate permissions to query the `INFORMATION_SCHEMA`.
-- This query directly addresses the requirement to find table names where any column contains the substring 'adfs', without needing to handle complex dynamic SQL.
-
-If you encounter any specific errors or if there are additional details about your MySQL server version that are causing issues, please let me know, and I can provide further assistance!
+- The outer query (`SELECT DISTINCT TABLE_NAME FROM INFORMATION_SCHEMA.COLUMNS`) retrieves the table names where the value 'adfs' is present in at least one column.
+- The inner query checks each column in each table (`INFORMATION_SCHEMA.COLUMNS`) within your database (`your_database_name`).
+- Adjust `your_database_name` to your actual database name and `your_table_name` to the specific table name where you are searching for the value 'adfs'.
