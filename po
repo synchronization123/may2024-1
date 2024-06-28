@@ -1,0 +1,53 @@
+Certainly! Here's how you can approach this problem for each of the databases (MySQL, MSSQL, and PostgreSQL):
+
+### MySQL Query:
+
+```sql
+SELECT TABLE_NAME, COLUMN_NAME
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_SCHEMA = 'your_database_name'
+AND TABLE_NAME IN (
+    SELECT TABLE_NAME
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE COLUMN_NAME LIKE '%charlie%'
+);
+```
+
+Replace `'your_database_name'` with the name of your MySQL database.
+
+### MSSQL Query:
+
+```sql
+SELECT TABLE_NAME, COLUMN_NAME
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_CATALOG = 'your_database_name'
+AND TABLE_NAME IN (
+    SELECT TABLE_NAME
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE COLUMN_NAME LIKE '%charlie%'
+);
+```
+
+Replace `'your_database_name'` with the name of your MSSQL database.
+
+### PostgreSQL Query:
+
+```sql
+SELECT table_name, column_name
+FROM information_schema.columns
+WHERE table_catalog = 'your_database_name'
+AND table_name IN (
+    SELECT table_name
+    FROM information_schema.columns
+    WHERE column_name LIKE '%charlie%'
+);
+```
+
+Replace `'your_database_name'` with the name of your PostgreSQL database.
+
+### Explanation:
+
+- These queries select `TABLE_NAME` and `COLUMN_NAME` from the system catalogs (`INFORMATION_SCHEMA.COLUMNS` or `information_schema.columns`) where the column name contains the substring 'charlie'.
+- Each query checks for tables and columns where the name contains 'charlie', providing you with a list of tables and columns where this condition is met across the database.
+
+Make sure to replace `'your_database_name'` with your actual database name in each query. This will give you the table names and column names where the word "charlie" exists in their names.
