@@ -1,0 +1,45 @@
+To capture and display the response content in the command line, you can modify the script to print the response text. Here's the updated script:
+
+```python
+import openpyxl
+import requests
+
+# Load the Excel workbook and select the active sheet
+wb = openpyxl.load_workbook('credentials.xlsx')
+sheet = wb.active
+
+# Define a function to test credentials and capture response
+def test_credentials(username, password, jsessionid):
+    url = 'https://your-crm-portal.com/login'  # Replace with your actual URL
+    headers = {
+        'Cookie': f'JSESSIONID={jsessionid}'
+    }
+    payload = {
+        'username': username,
+        'password': password
+    }
+    try:
+        response = requests.post(url, data=payload, headers=headers)
+        print(f"\nTesting credentials for username: {username}")
+        print(f"Status Code: {response.status_code}")
+        print(f"Response Text: {response.text}")
+    except requests.RequestException as e:
+        print(f"An error occurred: {e}")
+
+# Iterate through rows in the Excel file
+for row in sheet.iter_rows(min_row=2, values_only=True):
+    username, password, jsessionid = row
+    test_credentials(username, password, jsessionid)
+```
+
+**Explanation:**
+1. **Print Response Text**: Added `print(f"Response Text: {response.text}")` to output the response body from the server, which will help you see the exact response content.
+
+2. **Error Handling**: Added a `try-except` block to handle any potential exceptions during the HTTP request, ensuring you get informative error messages if something goes wrong.
+
+**Steps to Use:**
+1. **Prepare Excel File**: Ensure `credentials.xlsx` is correctly formatted.
+2. **Update URL**: Replace `'https://your-crm-portal.com/login'` with the actual URL.
+3. **Run Script**: Execute the script to see the responses and status codes in the command line.
+
+This will provide detailed output for each test, including the status code and the full response text from the server.
